@@ -15,6 +15,7 @@ import sys
 import os
 #import yaml
 import fnmatch
+import json
 
 class apacheCtl(object):
     def __init__(self,**kwargs):
@@ -1314,13 +1315,13 @@ magento = MagentoCtl()
 mage = magento.version("Mage.php")
 print "Magento %s %s" % (mage["version"],mage["edition"])
 """
-"""
 # Save the config as a yaml file
-if not os.path.isfile('config.yaml'):
-    with open('config.yaml','w') as outfile:
-        outfile.write( yaml.dump(globalconfig, default_flow_style=False) )
+filename = "config_dump.json"
+if not os.path.isfile(filename):
+    json_str=json.dumps(globalconfig)
+    with open(filename,'w') as outfile:
+        outfile.write( json_str )
     outfile.close()
-"""
 """
 else:
     with open('config.yaml','r') as infile:
