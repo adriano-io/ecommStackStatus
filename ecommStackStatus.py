@@ -15,6 +15,11 @@ import sys
 import os
 #import yaml
 import fnmatch
+import json
+import xml.etree.ElementTree as ET
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 class apacheCtl(object):
     def __init__(self,**kwargs):
@@ -439,7 +444,7 @@ class nginxCtl(object):
             if len(re.findall('{',line)) > 0 and len(re.findall('}',line)) > 0:
                 if not "error" in stanzas:
                     stanzas["error"] = "This script does not consistently support opening { and closing } stanzas on the same line.\n"
-                stanzas["error"] += "line %d %s\n" % (linenum,line.strip())
+                stanzas["error"] += "line %d: %s\n" % (linenum,line.strip())
             stanza_count+=len(re.findall('{',line))
             stanza_count-=len(re.findall('}',line))
             result = re.match("(\S+)\s*{",linecomp)
@@ -652,12 +657,27 @@ class MagentoCtl(object):
                     #print "652 %r %r %r" % (root,dirnames,filenames)
         
             if len(mage_php_matches) > 1:
-                print "There are multiple Mage.php files in the Document Root. This probably won't scan correctly." #breakme! Using the one with the smallest path."
-            #print "length %d" % len(mage_php_matches)
-            #print "path %s" % (mage_php_matches[0])
-            #print "dir %s" % (os.path.dirname(mage_php_matches[0]))
-            return_dict[doc_root_path] = mage_php_matches[0]
+                print "There are multiple Mage.php files in the Document Root. Choosing the shortest path." #breakme! Using the one with the smallest path."
+                smallest_size = 0
+                smallest_line = ""
+                for i in mage_php_matches:
+                    num_slashes = len(re.findall('/', i))
+                    if smallest_size == 0:
+                        smallest_size = num_slashes
+                        smallest_line = i
+                    elif num_slashes < smallest_size:
+                        smallest_size = num_slashes
+                        smallest_line = i
+                mage_php_matches[0] = smallest_line
+                        
+            if mage_php_matches:
+                return_dict[doc_root_path] = mage_php_matches[0]
         return(return_dict)
+        # if return_dict:
+        #     print "returning %r" % return_dict
+        #     return(return_dict)
+        # else:
+        #     sys.exit(1)
 
     def mage_file_info(self,mage_files):
         return_dict = {}
@@ -669,12 +689,12 @@ class MagentoCtl(object):
             head,tail = os.path.split(os.path.dirname(mage_php_match))
             return_dict[doc_root_path]["Mage.php"] = mage_php_match
             return_dict[doc_root_path]["magento_path"] = head
+            return_dict[doc_root_path]["local_xml"] = os.path.join(head, "app", "etc", "local.xml")
             return_dict[doc_root_path]["magento_version"] = "Magento %s %s" % (mage["version"],mage["edition"])
             return_dict[doc_root_path]["mage_version"] = mage
         return(return_dict)
     
     def open_local_xml(self, filename):
-        print filename
         """
         provide the filename (absolute or relative) of local.xml
         
@@ -683,6 +703,7 @@ class MagentoCtl(object):
         try:
             tree = ET.ElementTree(file=filename)
         except:
+            sys.stdout.write("Could not open file %s\n" % filename)
             sys.exit(1)
 
         #tree = ET.ElementTree(file='local.xml')
@@ -729,7 +750,7 @@ class MagentoCtl(object):
     
         returns a dict with key named "section"
         """
-        print tree, section, xml_parent_path, xml_config_node, xml_config_section
+        #print tree, section, xml_parent_path, xml_config_node, xml_config_section
         local_xml = {}
         # full page cache (FPC) - redis
         #section = "full_page_cache"
@@ -746,7 +767,7 @@ class MagentoCtl(object):
             local_xml[section] = {}
 
         resources = tree.find(xml_parent_path)
-        print resources
+        #print resources
         if resources is not None:
             i = resources.find(xml_config_node)
         else:
@@ -766,7 +787,6 @@ class MagentoCtl(object):
                 #print "%s: %s" % (i.tag,i.text)
                 local_xml[section][i.tag] = i.text
         return local_xml
-        pass
 
 def daemon_exe(match_exe):
     """
@@ -776,16 +796,30 @@ def daemon_exe(match_exe):
     """
     daemons = {}
     pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
-    
+    #pp.pprint(pids)
+
     for pid in pids:
         psexe = ""
+        ppid = ""
+        pscmd = ""
+        pserror = ""
         try:
             ppid = open(os.path.join('/proc', pid, 'stat'), 'rb').read().split()[3]
             pscmd = open(os.path.join('/proc', pid, 'cmdline'), 'rb').read().replace("\000"," ").rstrip()
             psexe = os.path.realpath(os.path.join('/proc', pid, 'exe'))
         except (IOError,OSError): # proc has already terminated, you may not be root
             continue
+        #print pid, ppid, pscmd, psexe
+        # fixme
+        # if the exe has been deleted (i.e. through an rpm update), the exe will be "/usr/sbin/nginx (deleted)"
         if psexe:
+            if re.search('\(deleted\)', psexe):
+                # if the exe has been deleted (i.e. through an rpm update), the exe will be "/usr/sbin/nginx (deleted)"
+                #print "WARNING: %s is reporting the binary running is deleted"
+                pserror = psexe
+                result = re.match('([^\(]+)', psexe)
+                psexe = result.group(1).rstrip()
+                pass
             if os.path.basename(psexe) in match_exe:
                 #if os.path.basename(psexe) == daemon_name:
                 if ppid == "1" or not os.path.basename(psexe) in daemons:
@@ -793,6 +827,9 @@ def daemon_exe(match_exe):
                     daemons[os.path.basename(psexe)]["exe"] = psexe
                     daemons[os.path.basename(psexe)]["cmd"] = pscmd
                     daemons[os.path.basename(psexe)]["basename"] = os.path.basename(psexe)
+                    if pserror:
+                        daemons[os.path.basename(psexe)]["error"] = "Process %s, %s is in (deleted) status. It may not exist, or may have been updated." % (pid,pserror)
+                        pserror = ""
     return(daemons)
 
 class AutoVivification(dict):
@@ -989,11 +1026,17 @@ drwxrwxr-x 3 user user 4096 Sep 15 17:11 example.com
 """
 # these are the daemon executable names we are looking for
 daemons = daemon_exe(["httpd", "apache2", "nginx", "bash", "httpd.event", "httpd.worker", "php-fpm", "mysql", "mysqld"])
+for i in daemons:
+    #print "%r" % daemons[i]
+    if "error" in daemons[i]:
+        sys.stderr.write(daemons[i]["error"] + "\n")
+
 """
 for one in daemons:
     print "%s: %r\n" % (one,daemons[one])
 """
-
+#pp = pprint.PrettyPrinter(indent=4)
+#pp.pprint(daemons)
 globalconfig = {}
 """
  ____    _  _____  _       ____    _  _____ _   _ _____ ____  
@@ -1162,24 +1205,49 @@ def MAGENTO_DATA_GATHER():
 ################################################
 # Magento
 ################################################
-if not "magento" in globalconfig:
-    globalconfig["magento"] = {}
-
-if not "doc_roots" in globalconfig:
-    globalconfig["doc_roots"] = set()
+# get a list of unique document roots
+doc_roots = set()
 if "sites" in globalconfig.get("apache",{}):
     for one in globalconfig["apache"]["sites"]:
         if "doc_root" in one:
-            globalconfig["doc_roots"].add(one["doc_root"])
+            doc_roots.add(one["doc_root"])
 if "sites" in globalconfig.get("nginx",{}):
     for one in globalconfig["nginx"]["sites"]:
         if "doc_root" in one:
-            globalconfig["doc_roots"].add(one["doc_root"])
+            doc_roots.add(one["doc_root"])
+#if not "doc_roots" in globalconfig:
+#    globalconfig["doc_roots"] = set()
+globalconfig["doc_roots"] = list(doc_roots)
+#print "doc_roots %r" % globalconfig["doc_roots"]
+
 
 magento = MagentoCtl()
+#print "%r" % magento
+if not "magento" in globalconfig:
+    globalconfig["magento"] = {}
+# find mage.php files in document roots
+try:
+    mage_files = magento.find_mage_php(globalconfig["doc_roots"])
+except:
+    print "No Magento found in the web document roots"
+    #print "mage files %r" % mage_files
+# get Magento information from those Mage.php
+try:
+    globalconfig["magento"]["doc_root"] = magento.mage_file_info(mage_files)
+except:
+    print "Failed to get magento information"
 
-mage_files = magento.find_mage_php(globalconfig["doc_roots"])
-globalconfig["magento"]["doc_root"] = magento.mage_file_info(mage_files)
+#print "Magento dictionary:"
+#pp.pprint(globalconfig["magento"])
+
+for doc_root in globalconfig["magento"]["doc_root"]:
+    local_xml = os.path.join(doc_root,"app","etc","local.xml")
+    if not "local_xml" in globalconfig["magento"]["doc_root"][doc_root]:
+        globalconfig["magento"]["doc_root"][doc_root]["local_xml"] = {}
+    
+    #testvar = magento.open_local_xml(local_xml)
+    #print "1252: %r" % testvar
+    globalconfig["magento"]["doc_root"][doc_root]["local_xml"].update(magento.open_local_xml(local_xml))
 """
 {'/var/www/html':
     {
@@ -1194,8 +1262,9 @@ globalconfig["magento"]["doc_root"] = magento.mage_file_info(mage_files)
             'version': '1.9.1.0',
             'minor': '9',
             'revision': '1'},
-    'magento_version': 'Magento 1.9.1.0 EDITION_COMMUNITY',
-    'magento_path': '/var/www/html'}
+       'magento_version': 'Magento 1.9.1.0 EDITION_COMMUNITY',
+       'magento_path': '/var/www/html'
+    }
 }
 """
 
@@ -1238,8 +1307,8 @@ if "nginx" in globalconfig:
             }
         ]
         """
-        if globalconfig["nginx"]["error"]:
-            print "Erorrs: \n%s" % globalconfig["nginx"]["error"]
+        if globalconfig.get("nginx",{}).get("error"):
+            sys.stderr.write("Errors: \n%s\n" % globalconfig["nginx"]["error"])
         
         for one in sorted(globalconfig["nginx"]["sites"]):
             if "domains" in one:
@@ -1346,9 +1415,13 @@ def MAGENTO_PRINT():
 ################################################
 # Magento
 ################################################
-for key, value in globalconfig["magento"]["doc_root"].iteritems():
-    print "1253 doc_root: %s %s" % (key,value["magento_version"])
 
+print "\nMagento versions installed:"
+if globalconfig.get("magento",{}).get("doc_root"):
+    for key, value in globalconfig["magento"]["doc_root"].iteritems():
+        print "%s %s" % (key,value["magento_version"])
+pp.pprint(globalconfig["magento"]["doc_root"])
+#print "1424: %r" % globalconfig["magento"]["doc_root"]
 """
 m = magentoCtl()
 filename="local.xml"
@@ -1423,16 +1496,20 @@ magento = MagentoCtl()
 mage = magento.version("Mage.php")
 print "Magento %s %s" % (mage["version"],mage["edition"])
 """
-"""
 # Save the config as a yaml file
-if not os.path.isfile('config.yaml'):
-    with open('config.yaml','w') as outfile:
-        outfile.write( yaml.dump(globalconfig, default_flow_style=False) )
+filename = "config_dump.json"
+if not os.path.isfile(filename):
+    json_str=json.dumps(globalconfig)
+    with open(filename,'w') as outfile:
+        outfile.write( json_str )
     outfile.close()
 """
-"""
+if os.path.isfile(filename):
+    try:
+        with open(filename,'r') as f:
+            globalconfig=json.load(f)
+    except:
+        print "The file %s exists, but failed to import." % filename
 else:
-    with open('config.yaml','r') as infile:
-        globalconfig = yaml.load ( infile.read() )
-    infile.close()
+    print "The file %s does not exist." % filename
 """
