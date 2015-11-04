@@ -767,7 +767,7 @@ class MagentoCtl(object):
             return_dict[doc_root_path]["local_xml"]["filename"] = os.path.join(head, "app", "etc", "local.xml")
             return_dict[doc_root_path]["magento_version"] = "Magento %s %s" % (mage["version"],mage["edition"])
             return_dict[doc_root_path]["mage_version"] = mage
-        print "mage_file_info" #fixme
+        print "770 mage_file_info" #fixme
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(return_dict)
         return(return_dict)
@@ -1401,6 +1401,7 @@ try:
 except:
     print "Failed to get magento information"
 
+sys.exit(0) #fixme
 #print "Magento dictionary:"
 #pp.pprint(globalconfig["magento"])
 
