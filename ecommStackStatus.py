@@ -696,14 +696,14 @@ class MagentoCtl(object):
         file_handle = open(mage_php_file, 'r')
         for line in file_handle:
             result = re.match("static\s+private\s+\$_currentEdition\s*=\s*self::([^\s;]+)", line.strip(), re.IGNORECASE )
+            print "699" #fixme
+            pp.pprint(result) #fixme
             if result:
                 mage["edition"] = result.group(1)
-                print "701 why is this enpty? %s" % result.group(1) #fixme
+                print "701 why is this empty? %s" % result.group(1) #fixme
             else: #fixme
                 mage["edition"] = "NO EDITION?" #fixme
-                print "704 why is this enpty? %s" % result.group(1) #fixme
             result = re.search('static\s+private\s+\$_currentEdition', line.strip(), re.IGNORECASE) #fixme
-            pp.pprint(result)
             if result: #fixme
                 print "705 %s" % line #fixme
             #result = re.match("public static function getVersionInfo\(\)", line.strip(), re.IGNORECASE)
