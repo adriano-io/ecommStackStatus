@@ -717,7 +717,7 @@ class MagentoCtl(object):
         pass
     def find_mage_php(self,doc_roots):
         return_dict = {}
-        for doc_root_path in globalconfig["doc_roots"]:
+        for doc_root_path in doc_roots:
             # with nginx and apache, we have docroot for web paths
             # we need to search those for Mage.php and local.xml
             #magento = MagentoCtl()
@@ -1382,6 +1382,8 @@ if not "magento" in globalconfig:
 # find mage.php files in document roots
 try:
     mage_files = magento.find_mage_php(globalconfig["doc_roots"])
+    print "\nmage_files"
+    pp.pprint(mage_files)
 except:
     print "No Magento found in the web document roots"
     #print "mage files %r" % mage_files
@@ -1389,7 +1391,7 @@ except:
 try:
     # print "1265"
     # print type(magento.mage_file_info(mage_files))
-    pp.pprint(mage_files)
+    print "\nmage_file_info"
     pp.pprint(magento.mage_file_info(mage_files))
     globalconfig["magento"]["doc_root"] = magento.mage_file_info(mage_files)
 except:
