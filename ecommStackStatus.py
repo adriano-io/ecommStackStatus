@@ -700,7 +700,7 @@ class MagentoCtl(object):
             # pp.pprint(result) #fixme
             if result:
                 mage["edition"] = result.group(1)
-                print "703 HIT"
+                print "703 HIT %s" % result.group(1)
             else: #fixme
                 mage["edition"] = "" #fixme
             #result = re.search('_currentEdition', line.strip(), re.IGNORECASE) #fixme
@@ -1411,8 +1411,8 @@ try:
     # print type(magento.mage_file_info(mage_files))
     #print "\n1397 mage_file_info" #fixme
     mage_file_info = magento.mage_file_info(mage_files)
-    print "1413" #fixme
-    pp.pprint(mage_file_info) #fixme
+    # print "1413" #fixme
+    # pp.pprint(mage_file_info) #fixme
     globalconfig["magento"]["doc_root"] = mage_file_info
 except:
     print "Failed to get magento information"
