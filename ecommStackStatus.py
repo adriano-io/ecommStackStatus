@@ -695,7 +695,7 @@ class MagentoCtl(object):
         mage = {}
         file_handle = open(mage_php_file, 'r')
         for line in file_handle:
-            result = re.search("static\s+private\s+\$_currentEdition\s*=\s*self::([^\s;]+)", line.strip(), re.IGNORECASE )
+            result = re.match("static\s+private\s+\$_currentEdition\s*=\s*self::([^\s;]+)", line.strip(), re.IGNORECASE )
             # print "699" #fixme
             # pp.pprint(result) #fixme
             if result:
