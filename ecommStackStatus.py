@@ -767,6 +767,7 @@ class MagentoCtl(object):
             return_dict[doc_root_path]["local_xml"]["filename"] = os.path.join(head, "app", "etc", "local.xml")
             return_dict[doc_root_path]["magento_version"] = "Magento %s %s" % (mage["version"],mage["edition"])
             return_dict[doc_root_path]["mage_version"] = mage
+        print "mage_file_info" #fixme
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(return_dict)
         return(return_dict)
@@ -1384,8 +1385,8 @@ if not "magento" in globalconfig:
 # find mage.php files in document roots
 try:
     mage_files = magento.find_mage_php(globalconfig["doc_roots"])
-    print "\nmage_files"
-    pp.pprint(mage_files)
+    print "\nmage_files" #fixme
+    pp.pprint(mage_files) #fixme
 except:
     print "No Magento found in the web document roots"
     #print "mage files %r" % mage_files
@@ -1393,8 +1394,8 @@ except:
 try:
     # print "1265"
     # print type(magento.mage_file_info(mage_files))
-    print "\nmage_file_info"
-    pp.pprint(magento.mage_file_info(mage_files))
+    print "\nmage_file_info" #fixme
+    pp.pprint(magento.mage_file_info(mage_files)) #fixme
     globalconfig["magento"]["doc_root"] = magento.mage_file_info(mage_files)
 except:
     print "Failed to get magento information"
