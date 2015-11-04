@@ -1391,6 +1391,13 @@ except:
     print "No Magento found in the web document roots"
     #print "mage files %r" % mage_files
 # get Magento information from those Mage.php
+
+print "\n1397 mage_file_info" #fixme
+mage_file_info = magento.mage_file_info(mage_files)
+pp.pprint(mage_file_info) #fixme
+globalconfig["magento"]["doc_root"] = mage_file_info
+
+
 try:
     # print "1265"
     # print type(magento.mage_file_info(mage_files))
