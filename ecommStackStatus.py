@@ -1389,7 +1389,8 @@ except:
 try:
     # print "1265"
     # print type(magento.mage_file_info(mage_files))
-    # pp.pprint(magento.mage_file_info(mage_files))
+    pp.pprint(mage_files)
+    pp.pprint(magento.mage_file_info(mage_files))
     globalconfig["magento"]["doc_root"] = magento.mage_file_info(mage_files)
 except:
     print "Failed to get magento information"
