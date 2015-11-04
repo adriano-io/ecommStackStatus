@@ -767,6 +767,7 @@ class MagentoCtl(object):
             return_dict[doc_root_path]["local_xml"]["filename"] = os.path.join(head, "app", "etc", "local.xml")
             return_dict[doc_root_path]["magento_version"] = "Magento %s %s" % (mage["version"],mage["edition"])
             return_dict[doc_root_path]["mage_version"] = mage
+        pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(return_dict)
         return(return_dict)
     
