@@ -700,6 +700,7 @@ class MagentoCtl(object):
             # pp.pprint(result) #fixme
             if result:
                 mage["edition"] = result.group(1)
+                print "703 HIT"
             else: #fixme
                 mage["edition"] = "" #fixme
             #result = re.search('_currentEdition', line.strip(), re.IGNORECASE) #fixme
