@@ -1410,6 +1410,7 @@ try:
     # print type(magento.mage_file_info(mage_files))
     #print "\n1397 mage_file_info" #fixme
     mage_file_info = magento.mage_file_info(mage_files)
+    print "1413" #fixme
     pp.pprint(mage_file_info) #fixme
     globalconfig["magento"]["doc_root"] = mage_file_info
 except:
