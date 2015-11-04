@@ -700,12 +700,11 @@ class MagentoCtl(object):
             # pp.pprint(result) #fixme
             if result:
                 mage["edition"] = result.group(1)
-                print "701 YAY, not empty! %s" % result.group(1) #fixme
             else: #fixme
-                mage["edition"] = "NO EDITION?" #fixme
-            result = re.search('_currentEdition', line.strip(), re.IGNORECASE) #fixme
-            if result: #fixme
-                print "705 %s" % line #fixme
+                mage["edition"] = "" #fixme
+            #result = re.search('_currentEdition', line.strip(), re.IGNORECASE) #fixme
+            #if result: #fixme
+            #    print "705 %s" % line #fixme
             #result = re.match("public static function getVersionInfo\(\)", line.strip(), re.IGNORECASE)
             if "public static function getVersionInfo()" in line:
                 line = file_handle.next() # {
@@ -1409,14 +1408,14 @@ globalconfig["magento"]["doc_root"] = mage_file_info
 try:
     # print "1265"
     # print type(magento.mage_file_info(mage_files))
-    print "\n1397 mage_file_info" #fixme
+    #print "\n1397 mage_file_info" #fixme
     mage_file_info = magento.mage_file_info(mage_files)
     pp.pprint(mage_file_info) #fixme
     globalconfig["magento"]["doc_root"] = mage_file_info
 except:
     print "Failed to get magento information"
 
-sys.exit(0) #fixme
+#sys.exit(0) #fixme
 #print "Magento dictionary:"
 #pp.pprint(globalconfig["magento"])
 
