@@ -721,6 +721,8 @@ class MagentoCtl(object):
         file_handle.close()
         # join them with periods, unless they are empty, then omit them
         mage["version"] = ".".join(filter(None,[mage["major"],mage["minor"],mage["revision"],mage["patch"],mage["stability"],mage["number"]]))
+        print "724"
+        pp.pprint(mage)
         return(mage)
     
     def localxml(self, local_xml_file):
