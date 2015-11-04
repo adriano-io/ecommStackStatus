@@ -1397,6 +1397,8 @@ except:
 #print "Magento dictionary:"
 #pp.pprint(globalconfig["magento"])
 
+pp.pprint(globalconfig)
+
 for doc_root in globalconfig["magento"]["doc_root"]:
     if not doc_root in globalconfig["magento"]["doc_root"]:
         globalconfig["magento"]["doc_root"][doc_root] = {}
