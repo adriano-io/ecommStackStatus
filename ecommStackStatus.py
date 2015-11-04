@@ -714,7 +714,7 @@ class MagentoCtl(object):
                     result = re.match("'([^']+)'\s*=>\s*'([^']*)'", line.strip())
                     if result:
                         mage[result.group(1)] = result.group(2)
-                break
+                #break
         file_handle.close()
         # join them with periods, unless they are empty, then omit them
         mage["version"] = ".".join(filter(None,[mage["major"],mage["minor"],mage["revision"],mage["patch"],mage["stability"],mage["number"]]))
