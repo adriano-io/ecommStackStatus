@@ -698,9 +698,10 @@ class MagentoCtl(object):
             result = re.match("static\s+private\s+\$_currentEdition\s*=\s*self::([^\s;]+)", line.strip(), re.IGNORECASE )
             if result:
                 mage["edition"] = result.group(1)
+                print "701 why is this enpty? %s" % result.group(1) #fixme
             else: #fixme
                 mage["edition"] = "NO EDITION?" #fixme
-                print "why is this enpty? %s" % result.group(1)
+                print "704 why is this enpty? %s" % result.group(1) #fixme
             result = re.search('static\s+private\s+\$_currentEdition', line.strip(), re.IGNORECASE) #fixme
             if result: #fixme
                 print "705 %s" % line #fixme
