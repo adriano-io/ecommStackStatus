@@ -701,8 +701,10 @@ class MagentoCtl(object):
             if result:
                 mage["edition"] = result.group(1)
                 print "703 HIT %s" % result.group(1)
+                print "704 %s" % mage["edition"]
             else: #fixme
                 mage["edition"] = "" #fixme
+                
             #result = re.search('_currentEdition', line.strip(), re.IGNORECASE) #fixme
             #if result: #fixme
             #    print "705 %s" % line #fixme
@@ -773,7 +775,9 @@ class MagentoCtl(object):
             return_dict[doc_root_path]["magento_path"] = head
             return_dict[doc_root_path]["local_xml"] = { }
             return_dict[doc_root_path]["local_xml"]["filename"] = os.path.join(head, "app", "etc", "local.xml")
-            return_dict[doc_root_path]["magento_version"] = "Magento %s %s" % (mage["version"],mage["edition"])
+            return_dict[doc_root_path]["magento_version"] = "%s" % mage["version"]
+            if mage["edition"]:
+                return_dict[doc_root_path]["magento_version"] += " %s" % mage["edition"]
             return_dict[doc_root_path]["mage_version"] = mage
         print "770 mage_file_info" #fixme
         pp = pprint.PrettyPrinter(indent=4)
