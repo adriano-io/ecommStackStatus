@@ -700,6 +700,9 @@ class MagentoCtl(object):
                 mage["edition"] = result.group(1)
             else: #fixme
                 mage["edition"] = "NO EDITION?" #fixme
+            result = re.search('static\s+private\s+\$_currentEdition', linestrip(), re.IGNORECASE)
+            if result:
+                print "705 %s" % line
             #result = re.match("public static function getVersionInfo\(\)", line.strip(), re.IGNORECASE)
             if "public static function getVersionInfo()" in line:
                 line = file_handle.next() # {
