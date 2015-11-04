@@ -695,17 +695,9 @@ class MagentoCtl(object):
         mage = {}
         file_handle = open(mage_php_file, 'r')
         for line in file_handle:
-            result = re.match("static\s+private\s+\$_currentEdition\s*=\s*self::([^\s;]+)", line.strip(), re.IGNORECASE )
-            # print "699" #fixme
-            # pp.pprint(result) #fixme
+            result = re.match("static\s+private\s+\$_currentEdition\s*=\s*self::([^\s;]+);", line.strip(), re.IGNORECASE )
             if result:
                 mage["edition"] = result.group(1)
-                print "703 HIT %s" % result.group(1)
-                print "704 %s" % mage["edition"]
-            #result = re.search('_currentEdition', line.strip(), re.IGNORECASE) #fixme
-            #if result: #fixme
-            #    print "705 %s" % line #fixme
-            #result = re.match("public static function getVersionInfo\(\)", line.strip(), re.IGNORECASE)
             if "public static function getVersionInfo()" in line:
                 line = file_handle.next() # {
                 line = file_handle.next() # return array(
@@ -718,8 +710,8 @@ class MagentoCtl(object):
         file_handle.close()
         # join them with periods, unless they are empty, then omit them
         mage["version"] = ".".join(filter(None,[mage["major"],mage["minor"],mage["revision"],mage["patch"],mage["stability"],mage["number"]]))
-        print "724"
-        pp.pprint(mage)
+        if not "edition" in mage:
+            mage["edition"] = ""
         return(mage)
     
     def localxml(self, local_xml_file):
@@ -769,7 +761,6 @@ class MagentoCtl(object):
             return_dict[doc_root_path] = {}
             mage = self.parse_version(mage_php_match)
             head,tail = os.path.split(os.path.dirname(mage_php_match))
-            print "763 mage %s head %s tail %s" % (mage,head,tail) #fixme
             return_dict[doc_root_path]["Mage.php"] = mage_php_match
             return_dict[doc_root_path]["magento_path"] = head
             return_dict[doc_root_path]["local_xml"] = { }
@@ -778,9 +769,6 @@ class MagentoCtl(object):
             if mage["edition"]:
                 return_dict[doc_root_path]["magento_version"] += " %s" % mage["edition"]
             return_dict[doc_root_path]["mage_version"] = mage
-        print "770 mage_file_info" #fixme
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(return_dict)
         return(return_dict)
     
     def open_local_xml(self, filename):
@@ -961,7 +949,7 @@ def daemon_exe(match_exe):
         except (IOError,OSError): # proc has already terminated, you may not be root
             continue
         #print pid, ppid, pscmd, psexe
-        # fixme
+
         # if the exe has been deleted (i.e. through an rpm update), the exe will be "/usr/sbin/nginx (deleted)"
         if psexe:
             if re.search('\(deleted\)', psexe):
@@ -1396,31 +1384,23 @@ if not "magento" in globalconfig:
 # find mage.php files in document roots
 try:
     mage_files = magento.find_mage_php(globalconfig["doc_roots"])
-    print "\n1388 mage_files" #fixme
-    pp.pprint(mage_files) #fixme
 except:
     print "No Magento found in the web document roots"
     #print "mage files %r" % mage_files
 # get Magento information from those Mage.php
 
-print "\n1397 mage_file_info" #fixme
 mage_file_info = magento.mage_file_info(mage_files)
-pp.pprint(mage_file_info) #fixme
 globalconfig["magento"]["doc_root"] = mage_file_info
 
 
 try:
     # print "1265"
     # print type(magento.mage_file_info(mage_files))
-    #print "\n1397 mage_file_info" #fixme
     mage_file_info = magento.mage_file_info(mage_files)
-    # print "1413" #fixme
-    # pp.pprint(mage_file_info) #fixme
     globalconfig["magento"]["doc_root"] = mage_file_info
 except:
     print "Failed to get magento information"
 
-#sys.exit(0) #fixme
 #print "Magento dictionary:"
 #pp.pprint(globalconfig["magento"])
 
